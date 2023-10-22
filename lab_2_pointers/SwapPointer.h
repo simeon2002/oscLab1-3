@@ -1,8 +1,4 @@
 //
 // Created by sims0702 on 10/22/23.
 //
-
-#ifndef LAB_2_POINTERS_SWAPPOINTER_H
-#define LAB_2_POINTERS_SWAPPOINTER_H
-
-#endif //LAB_2_POINTERS_SWAPPOINTER_H
+void SwapPointer(int*, int*);

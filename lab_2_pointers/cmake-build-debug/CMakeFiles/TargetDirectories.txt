@@ -1,0 +1,3 @@
+/home/sims0702/Documents/oscLab1-3/lab_2_pointers/cmake-build-debug/CMakeFiles/lab_2_pointers.dir
+/home/sims0702/Documents/oscLab1-3/lab_2_pointers/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/sims0702/Documents/oscLab1-3/lab_2_pointers/cmake-build-debug/CMakeFiles/rebuild_cache.dir
