@@ -5,6 +5,7 @@
 #include "datamgr.h"
 #include <time.h>
 
+
 int main(){
     printf("Hello World\n");
 
@@ -15,7 +16,7 @@ int main(){
 
     datamgr_parse_sensor_files(map, data);
 
-    datamgr_free();
+//    datamgr_free();
 
     fclose(map);
     fclose(data);

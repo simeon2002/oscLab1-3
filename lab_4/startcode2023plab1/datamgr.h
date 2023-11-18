@@ -17,13 +17,13 @@
 #define RUN_AVG_LENGTH 5
 #endif
 
-#ifndef SET_MAX_TEMP
-#error SET_MAX_TEMP not set
-#endif
-
-#ifndef SET_MIN_TEMP
-#error SET_MIN_TEMP not set
-#endif
+//#ifndef SET_MAX_TEMP
+//#error SET_MAX_TEMP not set
+//#endif
+//
+//#ifndef SET_MIN_TEMP
+//#error SET_MIN_TEMP not set
+//#endif
 
 /*
  * Use ERROR_HANDLER() for handling memory allocation problems, invalid sensor IDs, non-existing files, etc.
