@@ -10,6 +10,8 @@
 #include <unistd.h>
 //Question: what is the benefit of defining a function as a directive/?
 
+
+/*creation of a file_error preprocessor directive that will already be preprocessed basically.*/
 #define FILE_ERROR(fp, error_msg)    do {               \
                       if ((fp)==NULL) {                 \
                         printf("%s\n",(error_msg));     \

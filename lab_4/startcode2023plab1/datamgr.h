@@ -2,9 +2,7 @@
  * \author {AUTHOR}
  */
 
-//question 1: why do we say if not def to do datamgr_h and also for in the config.h file??
-//question 2: where do I use the ERROR_HANDLER macro to check these errors?
-// question 3: I need to create a datamgr.c file, correct?
+//question 2: where do I use the ERROR_HANDLER macro to check these errors? --> use it for error handling instead of needing to write the if condition every single time.
 
 #ifndef DATAMGR_H_
 #define DATAMGR_H_
@@ -12,18 +10,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "config.h"
+#include "lib/dplist.h"
 
 #ifndef RUN_AVG_LENGTH
-#define RUN_AVG_LENGTH 5
+#define RUN_AVG_LENGTH 8
 #endif
 
-//#ifndef SET_MAX_TEMP
-//#error SET_MAX_TEMP not set
-//#endif
-//
-//#ifndef SET_MIN_TEMP
-//#error SET_MIN_TEMP not set
-//#endif
+#ifndef SET_MAX_TEMP
+#error SET_MAX_TEMP not set
+#endif
+
+#ifndef SET_MIN_TEMP
+#error SET_MIN_TEMP not set
+#endif
 
 /*
  * Use ERROR_HANDLER() for handling memory allocation problems, invalid sensor IDs, non-existing files, etc.
@@ -34,6 +33,13 @@
                         exit(EXIT_FAILURE);                         \
                       }                                             \
                     } while(0)
+
+/* defintion of the 3 user-defined functions. */
+void *element_copy(void *element);
+void element_free(void **element);
+int element_compare(void *x, void *y);
+
+void parse_temp_reading_and_ts(dplist_t *list, FILE *fp_data);
 
 /**
  *  This method holds the core functionality of your datamgr. It takes in 2 file pointers to the sensor files and parses them. 

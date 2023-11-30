@@ -1,0 +1,49 @@
+0 - Sat Nov 18 18:32:18 - ERROR: could not open db file.
+0 - Sat Nov 18 18:59:21 - Data file opened.
+1 - Sat Nov 18 18:59:22 - ERROR: could not write to db file.
+0 - Sat Nov 18 19:05:59 - Data file opened.
+1 - Sat Nov 18 19:06:00 - Data inserted.
+2 - Sat Nov 18 19:06:00 - Data inserted.
+3 - Sat Nov 18 19:06:00 - Data inserted.
+4 - Sat Nov 18 19:06:05 - Data inserted.
+5 - Sat Nov 18 19:06:05 - ERROR: could not close db file.
+0 - Sat Nov 18 21:30:31 - Data file opened.
+1 - Sat Nov 18 21:30:32 - Data inserted.
+2 - Sat Nov 18 21:30:32 - Data inserted.
+3 - Sat Nov 18 21:30:32 - Data inserted.
+4 - Sat Nov 18 21:30:37 - Data inserted.
+5 - Sat Nov 18 21:30:37 - Data file closed.
+0 - Sat Nov 18 21:59:43 - Data file opened.
+1 - Sat Nov 18 21:59:44 - Data inserted.
+2 - Sat Nov 18 21:59:44 - Data inserted.
+3 - Sat Nov 18 21:59:44 - Data inserted.
+4 - Sat Nov 18 21:59:49 - Data inserted.
+5 - Sat Nov 18 21:59:49 - Data file closed.
+0 - Sun Nov 19 09:33:51 - Data file opened.
+1 - Sun Nov 19 09:33:52 - Data inserted.
+2 - Sun Nov 19 09:33:52 - Data inserted.
+3 - Sun Nov 19 09:33:52 - Data inserted.
+4 - Sun Nov 19 09:33:57 - Data inserted.
+5 - Sun Nov 19 09:33:57 - Data file closed.
+0 - Sun Nov 19 09:35:21 - Data file opened.
+1 - Sun Nov 19 09:35:22 - Data inserted.
+2 - Sun Nov 19 09:35:22 - Data inserted.
+3 - Sun Nov 19 09:35:22 - Data inserted.
+0 - Sun Nov 19 09:36:24 - Data file opened.
+1 - Sun Nov 19 09:36:25 - Data inserted.
+2 - Sun Nov 19 09:36:25 - Data inserted.
+3 - Sun Nov 19 09:36:25 - Data inserted.
+4 - Sun Nov 19 09:36:30 - Data inserted.
+5 - Sun Nov 19 09:36:30 - Data file closed.
+0 - Sun Nov 19 09:37:17 - Data file opened.
+1 - Sun Nov 19 09:37:18 - Data inserted.
+2 - Sun Nov 19 09:37:18 - Data inserted.
+3 - Sun Nov 19 09:37:18 - Data inserted.
+4 - Sun Nov 19 09:37:23 - Data inserted.
+5 - Sun Nov 19 09:37:23 - Data file closed.
+0 - Mon Nov 20 14:30:36 - Data file opened.
+1 - Mon Nov 20 14:30:37 - Data inserted.
+2 - Mon Nov 20 14:30:37 - Data inserted.
+3 - Mon Nov 20 14:30:37 - Data inserted.
+4 - Mon Nov 20 14:30:42 - Data inserted.
+5 - Mon Nov 20 14:30:42 - Data file closed.
