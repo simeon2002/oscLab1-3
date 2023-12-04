@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include "sbuffer.h"
 #include <semaphore.h>
-#include <pthread.h>
 
 /**
  * basic node for the buffer, these nodes are linked together to create the buffer
@@ -26,12 +25,17 @@ struct sbuffer {
 
 sem_t rw_mutex;
 sem_t buffer_count;
-pthread_mutex_t reader_mutex;
 
 int sbuffer_init(sbuffer_t **buffer) {
-    sem_init(&buffer_count, 0, 0);
-    sem_init(&rw_mutex, 0, 1);
-    pthread_mutex_init(&reader_mutex, NULL);
+    if (sem_init(&buffer_count, 0, 0) != 0) {
+        perror("buffer_count semaphore cannot be created");
+        return SBUFFER_FAILURE;
+    }
+    if (sem_init(&rw_mutex, 0, 1) != 0) {
+        perror("rw_mutex semaphore cannot be created");
+        return SBUFFER_FAILURE;
+    }
+
     *buffer = malloc(sizeof(sbuffer_t));
     if (*buffer == NULL) return SBUFFER_FAILURE;
     (*buffer)->head = NULL;
@@ -51,6 +55,12 @@ int sbuffer_free(sbuffer_t **buffer) {
     }
     free(*buffer);
     *buffer = NULL;
+    if (sem_destroy(&rw_mutex) != 0) {
+        perror("rw_mutex semaphore cannot be destroyed");
+    }
+    if (sem_destroy(&buffer_count) != 0) {
+        perror("buffer_count semaphore cannot be destroyed");
+    }
     return SBUFFER_SUCCESS;
 }
 
@@ -59,11 +69,17 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data) {
     sbuffer_node_t *dummy;
     // failure case
     if (buffer == NULL) return SBUFFER_FAILURE;
-    sem_wait(&buffer_count); // waits to get something in the buffer.
-    // no data case
+    if (sem_wait(&buffer_count) != 0){ // waits to get something in the buffer.
+        perror("Error occurred during waiting for counting semaphore");
+        return SBUFFER_FAILURE;
+    }
+    // no data case (not utilized in my code as this is accounted for by waiting semaphore)
     if (buffer->head == NULL) return SBUFFER_NO_DATA; // TODO QUESTION: there is not really a need for that one in my case?
     // data removed cases
-    sem_wait(&rw_mutex); // start buffer lock
+    if (sem_wait(&rw_mutex) != 0){ // start buffer lock
+        perror("Error occurred during waiting for semaphore mutex");
+        return SBUFFER_FAILURE;
+    }
     *data = buffer->head->data;
     dummy = buffer->head;
     if (buffer->head == buffer->tail) // buffer has only one node
@@ -73,10 +89,14 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data) {
     {
         buffer->head = buffer->head->next;
     }
-    sem_post(&rw_mutex); // end buffer lock
+    if (sem_post(&rw_mutex) != 0) { // end buffer lock
+        perror("Error occurred during release of semaphore mutex");
+        return SBUFFER_FAILURE;
+    }
     free(dummy);
     return SBUFFER_SUCCESS;
 }
+
 int sbuffer_insert(sbuffer_t *buffer, sensor_data_t *data) {
     sbuffer_node_t *dummy;
     dummy = (sbuffer_node_t*) malloc(sizeof(sbuffer_node_t));
@@ -84,16 +104,25 @@ int sbuffer_insert(sbuffer_t *buffer, sensor_data_t *data) {
     if (dummy == NULL) return SBUFFER_FAILURE;
     dummy->data = *data;
     dummy->next = NULL;
-    if (buffer->tail == NULL) // buffer empty (buffer->head should also be NULL
+    if (buffer->tail == NULL) // buffer was empty: no semaphore needed here as we have buffer_counter blocking the reader already.
     {
         buffer->head = buffer->tail = dummy;
     } else // buffer not empty
     {
-        sem_wait(&rw_mutex); // lock can start here, because reader can't access buffer it iis empty anyways.
+        if (sem_wait(&rw_mutex) != 0){ // lock can start here, because reader can't access buffer it iis empty anyways.
+            perror("Error occurred during waiting for semaphore mutex");
+            return SBUFFER_FAILURE;
+        }
         buffer->tail->next = dummy;
         buffer->tail = buffer->tail->next;
-        sem_post(&rw_mutex);
+        if (sem_post(&rw_mutex) != 0) { // end buffer lock
+            perror("Error occurred during release of semaphore mutex");
+            return SBUFFER_FAILURE;
+        }
     }
-    sem_post(&buffer_count); // signals that there is something in buffer.
+    if (sem_post(&buffer_count) != 0){ // signals that there is something in buffer.
+        perror("Error occurred during signaling of counting semaphore");
+        return SBUFFER_FAILURE;
+        }
     return SBUFFER_SUCCESS;
 }
