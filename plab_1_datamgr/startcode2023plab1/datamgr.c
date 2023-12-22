@@ -15,7 +15,6 @@ dplist_t *sensor_list;
 typedef struct {
     int room_id;
     int sensor_id;
-    sensor_value_t data_running_avg[RUN_AVG_LENGTH];
     sensor_value_t sum;
     sensor_value_t running_avg;
     int temp_count;
@@ -30,7 +29,8 @@ void *element_copy(void *element)
     ERROR_HANDLER(copy == NULL, EXIT_OUT_OF_MEMORY, "memory allocation failed");
     copy->room_id = ((sensor_element_t *)element)->room_id;
     copy->sensor_id = ((sensor_element_t *)element)->sensor_id;
-    memcpy(copy->data_running_avg, ((sensor_element_t *)element)->data_running_avg, sizeof(copy->data_running_avg));
+    copy->sum =  ((sensor_element_t*)element)->sum;
+    copy->running_avg = ((sensor_element_t*)element)->running_avg;
     copy->last_timestamp = ((sensor_element_t*)element)->last_timestamp;
     return (void *)copy;
 }
@@ -83,7 +83,6 @@ void datamgr_parse_sensor_files(FILE *fp_sensor_map, FILE *fp_sensor_data) {
     for (int i = 0; i < dpl_size(sensor_list); ++i) {
         sensor_node = (sensor_element_t*)dpl_get_element_at_index(sensor_list, i); // no copy returned
         for (int j = 0; j < RUN_AVG_LENGTH; j++) {
-            sensor_node->data_running_avg[j] = NAN;
             sensor_node->temp_count = 0;
             sensor_node->sum = 0.0;
             sensor_node->running_avg = 0.0;
@@ -91,7 +90,7 @@ void datamgr_parse_sensor_files(FILE *fp_sensor_map, FILE *fp_sensor_data) {
     }
 
     /* parsing binary file */
-    parse_temp_reading_and_ts(sensor_list, fp_sensor_data);
+    parse_temp_reading_and_ts(fp_sensor_data);
 
     // debug: checking the fields of all sensor ids
 //    for (int i = 0; i < dpl_size(sensor_list); i++) {
@@ -101,7 +100,7 @@ void datamgr_parse_sensor_files(FILE *fp_sensor_map, FILE *fp_sensor_data) {
 }
 
 /* parsing last 5 temperature readings of each and last timestamp of each*/
-void parse_temp_reading_and_ts(dplist_t *sensor_list, FILE *fp_data) {
+void parse_temp_reading_and_ts(FILE *fp_data) {
     int num_of_sensors = dpl_size(sensor_list);
     ERROR_HANDLER(num_of_sensors == -1, 1, "No sensor are present at this point of time.");
 

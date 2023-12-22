@@ -54,7 +54,7 @@ void *element_copy(void *element);
 void element_free(void **element);
 int element_compare(void *x, void *y);
 
-void parse_temp_reading_and_ts(dplist_t *list, FILE *fp_data);
+void parse_temp_reading_and_ts(FILE *fp_data);
 
 /**
  *  This method holds the core functionality of your datamgr. It takes in 2 file pointers to the sensor files and parses them. 
