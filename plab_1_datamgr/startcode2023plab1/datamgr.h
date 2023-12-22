@@ -13,7 +13,7 @@
 #include "lib/dplist.h"
 
 #ifndef RUN_AVG_LENGTH
-#define RUN_AVG_LENGTH 8
+#define RUN_AVG_LENGTH 5
 #endif
 
 #ifndef SET_MAX_TEMP
@@ -24,13 +24,22 @@
 #error SET_MIN_TEMP not set
 #endif
 
+#ifndef EXIT_OUT_OF_MEMORY
+#define EXIT_OUT_OF_MEMORY 1
+#endif
+
+#ifndef EXIT_FILE_ERROR
+#define EXIT_FILE_ERROR 2
+#endif
+
+
 /*
  * Use ERROR_HANDLER() for handling memory allocation problems, invalid sensor IDs, non-existing files, etc.
  */
-#define ERROR_HANDLER(condition, ...)    do {                       \
+#define ERROR_HANDLER(condition, exit_status, ...)    do {                       \
                       if (condition) {                              \
                         printf("\nError: in %s - function %s at line %d: %s\n", __FILE__, __func__, __LINE__, __VA_ARGS__); \
-                        exit(EXIT_FAILURE);                         \
+                        exit(exit_status);                         \
                       }                                             \
                     } while(0)
 

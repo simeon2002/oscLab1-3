@@ -9,9 +9,9 @@ int main(){
     printf("Hello World\n");
 
     FILE * map = fopen("room_sensor.map", "r");
-    ERROR_HANDLER(map == NULL, "File couuldn't open.");
+    ERROR_HANDLER(map == NULL, 1,  "File couldn't open.");
     FILE * data = fopen("sensor_data", "rb");
-    ERROR_HANDLER(data == NULL, "File couldn't open.");
+    ERROR_HANDLER(data == NULL, 1, "File couldn't open.");
 
     datamgr_parse_sensor_files(map, data);
     printf("The room id is %d\n", datamgr_get_room_id(142));

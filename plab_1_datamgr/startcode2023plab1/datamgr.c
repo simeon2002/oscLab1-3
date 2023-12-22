@@ -5,8 +5,8 @@
             // or just the ones that are existent.
 // question 5: why is does temp too hot not come in a red color on screen as an error?
 // quesetiotn 6: is it necessary to use ERROR_HANDLER for the reads() or won't that be a problem?
-// todo: catch the erorr for fprintf()
-// todo: change approach of determining avg_temp!
+// todo: adding loggers.
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <math.h> // for NaN
 
+#define RUNNING_AVG_LENGTH 5
 dplist_t *sensor_list;
 
 /* Definition of element_t */
@@ -28,12 +29,14 @@ typedef struct {
     int room_id;
     int sensor_id;
     sensor_value_t data_running_avg[RUN_AVG_LENGTH];
+    sensor_value_t sum;
+    sensor_value_t running_avg;
+    int temp_count;
     sensor_ts_t last_timestamp;
+
 } sensor_element_t;
 
-/* defintion of the 3 user-defined functions. */
-
-
+// dplist functions
 void *element_copy(void *element)
 {
     sensor_element_t *copy = malloc(sizeof(sensor_element_t) * RUN_AVG_LENGTH);
@@ -59,6 +62,7 @@ int element_compare(void *x, void *y)
 
 
 
+// datamgr functions
 
 /* parsing function */
 void datamgr_parse_sensor_files(FILE *fp_sensor_map, FILE *fp_sensor_data) {
@@ -68,24 +72,34 @@ void datamgr_parse_sensor_files(FILE *fp_sensor_map, FILE *fp_sensor_data) {
     /* parsing of room to sensor mappings */
     int counter = 0;
     while (1){
-        //note: true for insert_copy needs to be used as you are using a temp_node pointer which will always point to the same value!!!
         sensor_element_t *temp_node = (sensor_element_t*)malloc(sizeof(sensor_element_t));
-        assert(temp_node!=NULL);
-        if ((fscanf(fp_sensor_map, "%d %d\n", &(temp_node->room_id), &(temp_node->sensor_id))) == 2) {
+        ERROR_HANDLER(temp_node == NULL, EXIT_OUT_OF_MEMORY, "Memory allocation failed");
+
+
+        int items_read = fscanf(fp_sensor_map, "%d %d\n", &(temp_node->room_id), &(temp_node->sensor_id));
+        if (items_read == 2) { // reading sensor id and room id
             dpl_insert_at_index(sensor_list, temp_node, counter++, true); // copy necessary as I use same node.
             free(temp_node);
-        } else {
+        } else if (items_read == EOF){ // end of file
             free(temp_node);
             break;
+        } else { // error occurred
+            free(temp_node);
+            ERROR_HANDLER(1, EXIT_FILE_ERROR, "Error occurred during reading from file");
         };
     }
-    ERROR_HANDLER(dpl_get_element_at_index(sensor_list, 0) == NULL, "The sensor list is empty at this point of time");
+    ERROR_HANDLER(dpl_get_element_at_index(sensor_list, 0) == NULL, 1, "The sensor list is empty, "
+                                                                    "please add sensor_room mappings before continuing.");
 
     /* initializing data_avg_temp with NAN values */
+    sensor_element_t *sensor_node;
     for (int i = 0; i < dpl_size(sensor_list); ++i) {
-        sensor_element_t *sensor_node = (sensor_element_t*)dpl_get_element_at_index(sensor_list, i);
+        sensor_node = (sensor_element_t*)dpl_get_element_at_index(sensor_list, i); // no copy returned
         for (int j = 0; j < RUN_AVG_LENGTH; j++) {
             sensor_node->data_running_avg[j] = NAN;
+            sensor_node->temp_count = 0;
+            sensor_node->sum = 0.0;
+            sensor_node->running_avg = 0.0;
         }
     }
 
@@ -93,87 +107,76 @@ void datamgr_parse_sensor_files(FILE *fp_sensor_map, FILE *fp_sensor_data) {
     parse_temp_reading_and_ts(sensor_list, fp_sensor_data);
 
     /* extracting the sensor data from binary file.*/
-    sensor_id_t id;
-    sensor_value_t value;
-    sensor_ts_t ts;
-    int counter = 0;
-    while(1) {
-        size_t bytes_read = fread(&id, sizeof(id), 1, fp_sensor_data);
-        if (bytes_read == 0) break;
-        fread(&value, sizeof(value), 1, fp_sensor_data);
-        fread(&ts, sizeof(ts), 1, fp_sensor_data);
-        counter++;
+//    sensor_id_t id;
+//    sensor_value_t value;
+//    sensor_ts_t ts;
+//    counter = 0;
+//    while(1) {
+//        size_t bytes_read = fread(&id, sizeof(id), 1, fp_sensor_data);
+//        if (bytes_read == 0) break;
+//        fread(&value, sizeof(value), 1, fp_sensor_data);
+//        fread(&ts, sizeof(ts), 1, fp_sensor_data);
+//        counter++;
+//    }
+//   printf("%d\n", counter);
+//    struct stat sb;
+//    fstat(fileno(fp_sensor_data), &sb);
+////    printf("%d", sizeof );
+//    printf("test %lu\n", sb.st_size / 18);
+    for (int i = 0; i < dpl_size(sensor_list); i++) {
+        sensor_element_t *sensor_node = dpl_get_element_at_index(sensor_list, i);
+        printf("sensorid: %d, %f, %s", sensor_node->sensor_id, sensor_node->running_avg, ctime(&(sensor_node->last_timestamp)));
     }
-   printf("%d", counter);
-    struct stat sb;
-    fstat(fileno(fp_sensor_data), &sb);
-    printf("%d", sizeof )
-    printf("%lu", sb.st_size / 18);
-
 }
 
 /* parsing last 5 temperature readings of each and last timestamp of each*/
-void parse_temp_reading_and_ts(dplist_t *list, FILE *fp_data) {
-    int num_of_sensors = dpl_size(list);
-    ERROR_HANDLER(num_of_sensors == -1, "No sensor are present at this point of time.");
-    struct stat sb; // == properties of the file.
-    if (fstat(fileno(fp_data), &sb) == -1) {
-        perror("fstat");
-        exit(2);
-    }
+void parse_temp_reading_and_ts(dplist_t *sensor_list, FILE *fp_data) {
+    int num_of_sensors = dpl_size(sensor_list);
+    ERROR_HANDLER(num_of_sensors == -1, 1, "No sensor are present at this point of time.");
 
-    /* get num of sensor reading*/
-    long long num_of_sensor_readings = (long long) sb.st_size /
-                                       (long long) (sizeof(sensor_id_t) + sizeof(sensor_value_t)+sizeof(sensor_ts_t)); // size of file / size of one sensor struct
+    do {
+        int result;
 
-    /* reading data from file */
-    sensor_data_t *data_arrays = malloc(num_of_sensor_readings * sizeof(sensor_element_t));
-    assert(data_arrays != NULL);
-    for (int i = 0; i < num_of_sensor_readings; i++) {
-        fread(&data_arrays[i].id, sizeof(sensor_id_t), 1, fp_data);
-        if (ferror(fp_data)) {
-            ERROR_HANDLER(1, "An error occurred during reading");
-        }
-        fread(&data_arrays[i].value, sizeof(sensor_value_t), 1, fp_data);
-        if (ferror(fp_data)) {
-            ERROR_HANDLER(1, "An error occurred during reading");
-        }
-        fread(&data_arrays[i].ts, sizeof(sensor_ts_t), 1, fp_data);
-        if (ferror(fp_data)) {
-            ERROR_HANDLER(1, "An error occurred during reading");
-        }
-    }
-
-    /* getting last \RUN_AVG_LENGTH size time values for every sensor + last timestamp value */
-    int size = 0;
-    for (int j = num_of_sensors - 1; j >= 0; j--) {
-        sensor_element_t  *sensor_node = (sensor_element_t*)dpl_get_element_at_index(list, j);
-        for (int i = (int)num_of_sensor_readings - 1; i >= 0; i--) { // looping through temp_values and senosr values
-            if (size == RUN_AVG_LENGTH) break;
-            if (sensor_node->sensor_id != data_arrays[i].id) {
-                continue;
+        sensor_id_t sensor_id;
+        sensor_value_t sensor_value;
+        sensor_ts_t sensor_ts;
+        result = fread(&sensor_id, sizeof(sensor_id_t), 1, fp_data);
+        if (result != 1) {
+            if (feof(fp_data)) {
+                // done with reading
+                break;
+            } else if (ferror(fp_data)) {
+                ERROR_HANDLER(1, EXIT_FILE_ERROR, "Error reading file");
             }
-            // adding temp value if sensor_id are equivalent
-            sensor_node->data_running_avg[size] = data_arrays[i].value;
-            // adding ts of last temp value
-            if (size == 0) { // if it still the first matching temp value encounter from the end of the file
-                sensor_node->last_timestamp = data_arrays[i].ts;
-            }
-            size++;
         }
-        size = 0;
-    }
 
-//    /* DEBUGGING: printing sensor list */
-//    for (int i = 0; i < num_of_sensors; ++i) {
-//        sensor_element_t *sensor_node = (sensor_element_t*)dpl_get_element_at_index(list, i);
-//        printf("sensor values for sensor %d\n", sensor_node->sensor_id);
-//        for (int j = 0; j < RUN_AVG_LENGTH; j++) {
-//            printf("The temp value is: %f\n", sensor_node->data_running_avg[j]);
-//        }
-//        printf("The last timestamp is: %s\n\n", ctime(&sensor_node->last_timestamp));
-//    }
-    free(data_arrays);
+        result = fread(&sensor_value, sizeof(sensor_value_t), 1, fp_data);
+        if (result != 1) {
+            ERROR_HANDLER(1, EXIT_FILE_ERROR, "Error reading file");
+        }
+
+        result = fread(&sensor_ts, sizeof(sensor_ts_t), 1, fp_data);
+        if (result != 1) {
+            ERROR_HANDLER(1, EXIT_FILE_ERROR, "Error reading file");
+        }
+
+        for (int i = 0; i < num_of_sensors; i++) {
+            sensor_element_t* sensor_node = (sensor_element_t*) dpl_get_element_at_index(sensor_list, i);
+            if (sensor_node->sensor_id == sensor_id) {
+                sensor_node->last_timestamp = sensor_ts;
+                if (sensor_node->temp_count == RUNNING_AVG_LENGTH) {
+                    sensor_value_t old_running_avg = sensor_node->running_avg;
+                    sensor_node->running_avg = old_running_avg + (sensor_value - old_running_avg) / RUNNING_AVG_LENGTH;
+                } else { // if count not yet reached.
+                    sensor_node->temp_count++;
+                    sensor_node->sum += sensor_value;
+                    sensor_node->running_avg = 1.0* sensor_node->sum / sensor_node->temp_count;
+                }
+//                printf("current temperature for sensor %d; %f\n", sensor_node->sensor_id, sensor_node->running_avg);
+//                printf("last ts: %s\n", ctime(&(sensor_node->last_timestamp)));
+            }
+        }
+    } while (1);
 }
 
 void datamgr_free() {
@@ -187,33 +190,31 @@ uint16_t datamgr_get_room_id(sensor_id_t sensor_id) {
             return sensor_node->room_id;
         }
     }
-    ERROR_HANDLER(1, "Sensor id doesn't exist.");
+    ERROR_HANDLER(1, 1, "Sensor id doesn't exist.");
 }
 
 sensor_value_t datamgr_get_avg(sensor_id_t sensor_id) {
     sensor_value_t avg_temp;
-    sensor_value_t temp_data[RUN_AVG_LENGTH];
+    sensor_element_t *sensor;
 
     for (int i = 0; i < dpl_size(sensor_list); i++) {
         sensor_element_t *sensor_node = dpl_get_element_at_index(sensor_list, i);
         if (sensor_id == sensor_node->sensor_id) {
-            memcpy(temp_data, sensor_node->data_running_avg, sizeof(sensor_value_t) * RUN_AVG_LENGTH);
+            sensor = dpl_get_element_at_index(sensor_list, i);
             break;
         }
-        ERROR_HANDLER(i == RUN_AVG_LENGTH - 1, "Sensor id doesn't exist.");
+        ERROR_HANDLER(i == dpl_size(sensor_list) - 1, 1, "Sensor id doesn't exist.");
         }
 
-    // checking temp_data size.
-    if (isnan(temp_data[RUN_AVG_LENGTH - 1])) { // checking only the last value is enough!
+    if (sensor->temp_count != RUNNING_AVG_LENGTH) { // checking only the last value is enough!
         return 0;
-    } else { // calc average
-        sensor_value_t sum = 0;
-        for (int i = 0; i < RUN_AVG_LENGTH; i++) {
-            sum += temp_data[i];
-        }
-        avg_temp = sum / RUN_AVG_LENGTH;
+    } else {
+        return sensor->running_avg;
     }
+
+
     // checking if temp dev is bigger or smaller than temp dev for correction.
+    // TODO: add to logging processing by writing write_to_log_process() here.
     if (avg_temp > SET_MAX_TEMP) {
         fprintf(stderr, "The room is too hot.\n");
     }
@@ -229,7 +230,7 @@ time_t datamgr_get_last_modified(sensor_id_t sensor_id) {
             return sensor_node->last_timestamp;
         }
     }
-    ERROR_HANDLER(1, "Sensor id doesn't exist.");
+    ERROR_HANDLER(1, 1, "Sensor id doesn't exist.");
 }
 
 int datamgr_get_total_sensors() {

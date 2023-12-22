@@ -10,3 +10,6 @@ gendebug: config.h file_creator.c
 
 all_with_temps: main.c datamgr.c datamgr.h config.h lib/dplist.c lib/dplist.h
 	 gcc -g -Wall main.c lib/dplist.h lib/dplist.c datamgr.c -o main.out -DRUN_AVG_LENGTH=10 -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=12
+
+clean_outputs:
+	rm *.out
