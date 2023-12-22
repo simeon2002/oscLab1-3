@@ -16,13 +16,13 @@ runserver: test_server
 	./test_server 5678 4
 
 runclient1: sensor_node
-	./sensor_node 1 .1 127.0.0.1 5678
+	./sensor_node 1 1 127.0.0.1 5678
 
 runclient2: sensor_node
-	./sensor_node 2 .1 127.0.0.1 5678
+	./sensor_node 2 1 127.0.0.1 5678
 
 runclient3: sensor_node
-	./sensor_node 3 2 127.0.0.1 5678
+	./sensor_node 3 1 127.0.0.1 5678
 
 runclient4: sensor_node
 	./sensor_node 4 1 127.0.0.1 5678
