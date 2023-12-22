@@ -1,27 +1,14 @@
 // question: if a lib like stdlib is included in f.e. the header file of datamgr.c or in another header file
-            // do I still need to include it here?
+// do I still need to include it here?
 // question 2: why can't I read the sensor_element_t struct in one memory block completely like with read from unitsd.h? (line 68 approx.)
 // question 4: for the total amount of sensors ... does this mean the sensors encountered in the binary fine, also the non-existent once
-            // or just the ones that are existent.
+// or just the ones that are existent.
 // question 5: why is does temp too hot not come in a red color on screen as an error?
 // quesetiotn 6: is it necessary to use ERROR_HANDLER for the reads() or won't that be a problem?
 // todo: adding loggers.
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
 #include "datamgr.h"
-#include "lib/dplist.h"
-#include <errno.h>
-#include <assert.h>
-#include <string.h>
-#include <inttypes.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <math.h> // for NaN
-
-#define RUNNING_AVG_LENGTH 5
 dplist_t *sensor_list;
 
 /* Definition of element_t */
@@ -40,7 +27,7 @@ typedef struct {
 void *element_copy(void *element)
 {
     sensor_element_t *copy = malloc(sizeof(sensor_element_t) * RUN_AVG_LENGTH);
-    assert(copy != NULL);
+    ERROR_HANDLER(copy == NULL, EXIT_OUT_OF_MEMORY, "memory allocation failed");
     copy->room_id = ((sensor_element_t *)element)->room_id;
     copy->sensor_id = ((sensor_element_t *)element)->sensor_id;
     memcpy(copy->data_running_avg, ((sensor_element_t *)element)->data_running_avg, sizeof(copy->data_running_avg));
@@ -89,7 +76,7 @@ void datamgr_parse_sensor_files(FILE *fp_sensor_map, FILE *fp_sensor_data) {
         };
     }
     ERROR_HANDLER(dpl_get_element_at_index(sensor_list, 0) == NULL, 1, "The sensor list is empty, "
-                                                                    "please add sensor_room mappings before continuing.");
+                                                                       "please add sensor_room mappings before continuing.");
 
     /* initializing data_avg_temp with NAN values */
     sensor_element_t *sensor_node;
@@ -106,27 +93,11 @@ void datamgr_parse_sensor_files(FILE *fp_sensor_map, FILE *fp_sensor_data) {
     /* parsing binary file */
     parse_temp_reading_and_ts(sensor_list, fp_sensor_data);
 
-    /* extracting the sensor data from binary file.*/
-//    sensor_id_t id;
-//    sensor_value_t value;
-//    sensor_ts_t ts;
-//    counter = 0;
-//    while(1) {
-//        size_t bytes_read = fread(&id, sizeof(id), 1, fp_sensor_data);
-//        if (bytes_read == 0) break;
-//        fread(&value, sizeof(value), 1, fp_sensor_data);
-//        fread(&ts, sizeof(ts), 1, fp_sensor_data);
-//        counter++;
+    // debug: checking the fields of all sensor ids
+//    for (int i = 0; i < dpl_size(sensor_list); i++) {
+//        sensor_element_t *sensor_node = dpl_get_element_at_index(sensor_list, i);
+//        printf("sensorid: %d, %f, %s", sensor_node->sensor_id, sensor_node->running_avg, ctime(&(sensor_node->last_timestamp)));
 //    }
-//   printf("%d\n", counter);
-//    struct stat sb;
-//    fstat(fileno(fp_sensor_data), &sb);
-////    printf("%d", sizeof );
-//    printf("test %lu\n", sb.st_size / 18);
-    for (int i = 0; i < dpl_size(sensor_list); i++) {
-        sensor_element_t *sensor_node = dpl_get_element_at_index(sensor_list, i);
-        printf("sensorid: %d, %f, %s", sensor_node->sensor_id, sensor_node->running_avg, ctime(&(sensor_node->last_timestamp)));
-    }
 }
 
 /* parsing last 5 temperature readings of each and last timestamp of each*/
@@ -204,7 +175,7 @@ sensor_value_t datamgr_get_avg(sensor_id_t sensor_id) {
             break;
         }
         ERROR_HANDLER(i == dpl_size(sensor_list) - 1, 1, "Sensor id doesn't exist.");
-        }
+    }
 
     if (sensor->temp_count != RUNNING_AVG_LENGTH) { // checking only the last value is enough!
         return 0;
@@ -236,5 +207,3 @@ time_t datamgr_get_last_modified(sensor_id_t sensor_id) {
 int datamgr_get_total_sensors() {
     return dpl_size(sensor_list);
 }
-
-// question 3: whenever there is an error during reading, do I need to exit the process or? (line 68 approx.)

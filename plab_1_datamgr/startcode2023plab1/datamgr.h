@@ -11,9 +11,15 @@
 #include <stdio.h>
 #include "config.h"
 #include "lib/dplist.h"
+//#include <errno.h>
+#include <string.h>
+#include <inttypes.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <math.h> // for NaN
 
-#ifndef RUN_AVG_LENGTH
-#define RUN_AVG_LENGTH 5
+#ifndef RUNNING_AVG_LENGTH
+#define RUNNING_AVG_LENGTH 5
 #endif
 
 #ifndef SET_MAX_TEMP

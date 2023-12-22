@@ -10,14 +10,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0e889220-8505-4286-a1bf-a4457e8ca30b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../.idea/oscLab1-3.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/oscLab1-3.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../homeworks" beforeDir="false" afterPath="$PROJECT_DIR$/../homeworks" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../plab_1_datamgr/startcode2023plab1/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../plab_1_datamgr/startcode2023plab1/Makefile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../plab_1_datamgr/startcode2023plab1/datamgr.c" beforeDir="false" afterPath="$PROJECT_DIR$/../plab_1_datamgr/startcode2023plab1/datamgr.c" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../plab_1_datamgr/startcode2023plab1/datamgr.h" beforeDir="false" afterPath="$PROJECT_DIR$/../plab_1_datamgr/startcode2023plab1/datamgr.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../plab_1_datamgr/startcode2023plab1/main.c" beforeDir="false" afterPath="$PROJECT_DIR$/../plab_1_datamgr/startcode2023plab1/main.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../plab_1_datamgr/startcode2023plab1/sensor_data" beforeDir="false" afterPath="$PROJECT_DIR$/../plab_1_datamgr/startcode2023plab1/sensor_data" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../plab_2_logging_IPC/gateway.log" beforeDir="false" afterPath="$PROJECT_DIR$/../plab_2_logging_IPC/gateway.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plab_2_logging_IPC/logger.c" beforeDir="false" afterPath="$PROJECT_DIR$/../plab_2_logging_IPC/logger.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../plab_2_logging_IPC/logger.h" beforeDir="false" afterPath="$PROJECT_DIR$/../plab_2_logging_IPC/logger.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../plab_2_logging_IPC/sensor_db.csv" beforeDir="false" afterPath="$PROJECT_DIR$/../plab_2_logging_IPC/sensor_db.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>

@@ -1,26 +1,6 @@
-#include <time.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <string.h>
-//#include <errno.h>
-#define BUFFER_SIZE 1000
-#define LOG_FILE "gateway.log"
+#include "logger.h"
 
-// status 1: file opening error
-#define FILE_OPENING_ERROR 1
-// status 2: fork failure
-#define FORK_FAILURE 2
-// status 3: writing to log file failure
-#define LOG_WRITING_ERROR 3
-// status 4: file failed to close
-#define FILE_CLOSING_ERROR 4
-// status 5: pipe creation failure
-#define PIPE_CREATION_FAILURE 5
-
-// status 7: error occurred during reading from pipe
-#define PIPE_READING_ERROR 7
+//TODO: add error handler function like in plab1
 
 // GLOBAL VARS
 int fd[2];
