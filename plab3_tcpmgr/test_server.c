@@ -73,8 +73,6 @@ int main(int argc, char *argv[]) {
         }
         printf("Incoming client connection\n");
 
-
-
         if (pthread_create(thread_ids + conn_counter, NULL, (void*)client_handler, client) != 0) {
             fprintf(stderr, "Error during thread creation for client.");
             exit(EXIT_FAILURE);
